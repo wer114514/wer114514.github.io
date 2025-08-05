@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>简易钢琴键盘</title>
+    <title>太阳系天体运动模拟器</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script>
@@ -13,11 +13,11 @@
                     colors: {
                         primary: '#165DFF',
                         secondary: '#FF7D00',
-                        dark: '#1E293B',
+                        dark: '#0F172A',
                         light: '#F8FAFC'
                     },
                     fontFamily: {
-                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
                     },
                 }
             }
@@ -25,147 +25,603 @@
     </script>
     <style type="text/tailwindcss">
         @layer utilities {
-            .key-shadow {
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 -4px 0 0 rgba(0, 0, 0, 0.1);
+            .content-auto {
+                content-visibility: auto;
             }
-            .key-shadow-active {
-                box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), inset 0 -2px 0 0 rgba(0, 0, 0, 0.1);
+            .planet-label {
+                @apply text-xs font-medium px-1.5 py-0.5 rounded-full backdrop-blur-sm bg-white/20 text-white;
             }
-            .black-key-shadow {
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1), inset 0 -2px 0 0 rgba(255, 255, 255, 0.1);
+            .info-card {
+                @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 shadow-lg transition-all duration-300 hover:bg-white/20;
             }
-            .black-key-shadow-active {
-                box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.2), inset 0 -1px 0 0 rgba(255, 255, 255, 0.1);
+            .control-btn {
+                @apply bg-primary/20 hover:bg-primary/40 text-white p-2 rounded-full transition-all duration-300;
+            }
+            .param-input {
+                @apply bg-dark/60 border border-white/20 rounded px-2 py-1 text-white text-sm w-full focus:outline-none focus:ring-1 focus:ring-primary;
             }
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen font-inter flex flex-col items-center justify-center p-4">
-    <div class="w-full max-w-4xl">
-        <header class="text-center mb-8">
-            <h1 class="text-[clamp(1.8rem,5vw,2.5rem)] font-bold text-dark mb-2">简易钢琴键盘</h1>
-            <p class="text-gray-600 text-lg">点击琴键演奏音乐，感受音符的魅力</p>
-        </header>
-        
-        <main class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
-            <div class="relative w-full aspect-[8/3] max-w-3xl mx-auto">
-                <div id="keyboard" class="relative w-full h-full flex rounded-lg overflow-hidden shadow-lg">
-                    <!-- 琴键将通过JavaScript动态生成 -->
+<body class="bg-gradient-to-br from-dark to-dark/90 text-light min-h-screen">
+    <header class="container mx-auto px-4 py-6 flex justify-between items-center">
+        <h1 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-white">
+            <i class="fa fa-globe mr-2"></i>太阳系天体运动模拟器
+        </h1>
+        <div class="flex gap-2">
+            <button id="paramsBtn" class="control-btn" title="参数设置">
+                <i class="fa fa-sliders"></i>
+            </button>
+            <button id="fullscreenBtn" class="control-btn" title="全屏模式">
+                <i class="fa fa-expand"></i>
+            </button>
+            <button id="infoBtn" class="control-btn" title="天体信息">
+                <i class="fa fa-info-circle"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-6">
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- 参数编辑面板 -->
+            <div id="paramsPanel" class="lg:w-1/4 bg-dark/50 rounded-xl p-4 border border-white/10 shadow-xl hidden">
+                <h2 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fa fa-cog mr-2"></i>天体参数设置
+                </h2>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">选择天体:</label>
+                    <select id="bodySelector" class="param-input">
+                        <!-- 将由JavaScript动态填充 -->
+                    </select>
                 </div>
                 
-                <div id="note-display" class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 bg-primary text-white px-6 py-3 rounded-lg shadow-lg text-xl font-semibold transition-all duration-300 opacity-0">
-                    <span id="note-name">C</span>
+                <div id="paramsForm" class="space-y-3">
+                    <div>
+                        <label for="radiusInput" class="block text-sm mb-1">天体半径:</label>
+                        <input type="number" id="radiusInput" class="param-input" min="1" max="100" step="0.5">
+                    </div>
+                    
+                    <div>
+                        <label for="orbitRadiusInput" class="block text-sm mb-1">轨道半径:</label>
+                        <input type="number" id="orbitRadiusInput" class="param-input" min="0" max="600" step="5">
+                    </div>
+                    
+                    <div>
+                        <label for="speedInput" class="block text-sm mb-1">轨道速度:</label>
+                        <input type="number" id="speedInput" class="param-input" min="0" max="0.1" step="0.001">
+                    </div>
+                    
+                    <div>
+                        <label for="tiltInput" class="block text-sm mb-1">倾斜角度 (°):</label>
+                        <input type="number" id="tiltInput" class="param-input" min="0" max="180" step="1">
+                    </div>
+                    
+                    <div>
+                        <label for="colorInput" class="block text-sm mb-1">天体颜色:</label>
+                        <input type="color" id="colorInput" class="w-full h-8 bg-dark/60 border border-white/20 rounded">
+                    </div>
+                    
+                    <div class="flex gap-2 mt-4">
+                        <button id="applyParamsBtn" class="flex-1 bg-primary hover:bg-primary/80 text-white px-3 py-2 rounded transition-all">
+                            应用更改
+                        </button>
+                        <button id="resetParamsBtn" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white px-3 py-2 rounded transition-all">
+                            重置参数
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mt-6 p-3 bg-white/5 rounded-lg text-sm text-gray-300">
+                    <p class="font-medium mb-1"><i class="fa fa-lightbulb-o mr-1"></i> 提示:</p>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>更改半径会影响天体大小</li>
+                        <li>更改轨道半径会影响与中心的距离</li>
+                        <li>更改轨道速度会影响运行快慢</li>
+                        <li>更改倾斜角度会影响轨道倾斜度</li>
+                    </ul>
                 </div>
             </div>
             
-            <div class="mt-8 text-center">
-                <div class="inline-flex items-center gap-4 bg-gray-100 rounded-xl p-4">
-                    <i class="fa fa-info-circle text-primary text-xl"></i>
-                    <p class="text-gray-700">点击白色琴键 (C, D, E, F, G, A, B, C1) 演奏对应的音符</p>
+            <!-- 模拟器主体区域 -->
+            <div class="lg:w-3/4">
+                <div class="relative w-full h-[60vh] bg-dark/50 rounded-xl overflow-hidden border border-white/10 shadow-xl mb-6">
+                    <canvas id="solarSystem" class="w-full h-full"></canvas>
+                    
+                    <!-- 控制面板 -->
+                    <div class="absolute bottom-4 left-4 right-4 flex flex-wrap items-center justify-center gap-3 bg-dark/60 backdrop-blur-md rounded-lg p-3 border border-white/10">
+                        <button id="pauseBtn" class="bg-secondary hover:bg-secondary/80 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center">
+                            <i class="fa fa-pause mr-2"></i>暂停
+                        </button>
+                        <button id="resetBtn" class="bg-primary hover:bg-primary/80 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center">
+                            <i class="fa fa-refresh mr-2"></i>重置位置
+                        </button>
+                        
+                        <div class="flex items-center gap-2">
+                            <label for="speedRange" class="text-sm">速度:</label>
+                            <input type="range" id="speedRange" min="0.1" max="5" step="0.1" value="1" 
+                                class="w-32 accent-primary">
+                            <span id="speedValue" class="text-sm">1x</span>
+                        </div>
+                        
+                        <div class="flex items-center gap-2">
+                            <label for="zoomRange" class="text-sm">缩放:</label>
+                            <input type="range" id="zoomRange" min="0.5" max="2" step="0.1" value="1" 
+                                class="w-32 accent-primary">
+                            <span id="zoomValue" class="text-sm">1x</span>
+                        </div>
+                        
+                        <div class="flex items-center gap-2">
+                            <label for="labelsToggle" class="text-sm">显示标签:</label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="labelsToggle" class="sr-only peer" checked>
+                                <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 行星信息卡片 -->
+                <div id="planetInfo" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="info-card">
+                        <h3 class="text-lg font-bold mb-2 flex items-center">
+                            <div class="w-5 h-5 rounded-full bg-[#ff7d00] mr-2"></div>太阳
+                        </h3>
+                        <p class="text-sm text-gray-300">太阳系的中心天体，占有太阳系总体质量的99.86%。</p>
+                    </div>
+                    <div class="info-card">
+                        <h3 class="text-lg font-bold mb-2 flex items-center">
+                            <div class="w-3 h-3 rounded-full bg-[#a8a8a8] mr-2"></div>水星
+                        </h3>
+                        <p class="text-sm text-gray-300">离太阳最近的行星，表面布满环形山，没有大气层。</p>
+                    </div>
+                    <div class="info-card">
+                        <h3 class="text-lg font-bold mb-2 flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-[#e39e58] mr-2"></div>金星
+                        </h3>
+                        <p class="text-sm text-gray-300">被称为地球的"姊妹星"，表面有浓密的二氧化碳大气层。</p>
+                    </div>
+                    <div class="info-card">
+                        <h3 class="text-lg font-bold mb-2 flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-[#2e86c1] mr-2"></div>地球
+                        </h3>
+                        <p class="text-sm text-gray-300">目前已知唯一存在生命的行星，有液态水和适宜的大气层。</p>
+                    </div>
                 </div>
             </div>
-        </main>
-        
-        <footer class="mt-8 text-center text-gray-500 text-sm">
-            <p>🎹 简易钢琴键盘 | 享受音乐的乐趣</p>
-        </footer>
-    </div>
+        </div>
+
+        <!-- 教学内容 -->
+        <div class="bg-dark/30 rounded-xl p-6 border border-white/10 mb-6">
+            <h2 class="text-xl font-bold mb-4 flex items-center">
+                <i class="fa fa-book mr-2"></i>天体运动科普知识
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">太阳系的组成</h3>
+                    <p class="text-gray-300 mb-3">太阳系是以太阳为中心，由八大行星、矮行星、卫星和无数的小行星、彗星等组成的天体系统。八大行星按照离太阳由近及远的顺序为：水星、金星、地球、火星、木星、土星、天王星和海王星。</p>
+                    
+                    <h3 class="text-lg font-semibold mb-2">行星运动规律</h3>
+                    <p class="text-gray-300 mb-3">行星围绕太阳运行的轨道是椭圆形的，太阳位于椭圆的一个焦点上。离太阳越近的行星，公转周期越短；离太阳越远的行星，公转周期越长。</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">开普勒定律</h3>
+                    <p class="text-gray-300 mb-3">德国天文学家开普勒发现了行星运动的三大定律：</p>
+                    <ol class="list-decimal list-inside text-gray-300 space-y-1">
+                        <li>轨道定律：行星绕太阳运行的轨道是椭圆，太阳位于椭圆的一个焦点上。</li>
+                        <li>面积定律：行星与太阳的连线在相等时间内扫过相等的面积。</li>
+                        <li>周期定律：行星绕太阳运行周期的平方与轨道半长轴的立方成正比。</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="container mx-auto px-4 py-6 text-center text-gray-500 text-sm">
+        <p>太阳系天体运动模拟器 &copy; 2025 | 为低年级科学课堂设计</p>
+    </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // 定义音符和对应的音频文件
-            const notes = [
-                { name: 'C', key: 'C', frequency: 261.63 },
-                { name: 'D', key: 'D', frequency: 293.66 },
-                { name: 'E', key: 'E', frequency: 329.63 },
-                { name: 'F', key: 'F', frequency: 349.23 },
-                { name: 'G', key: 'G', frequency: 392.00 },
-                { name: 'A', key: 'A', frequency: 440.00 },
-                { name: 'B', key: 'B', frequency: 493.88 },
-                { name: 'C1', key: 'C1', frequency: 523.25 }
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取Canvas元素并设置上下文
+            const canvas = document.getElementById('solarSystem');
+            const ctx = canvas.getContext('2d');
+            
+            // 设置Canvas尺寸
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+            }
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // 天体数据 - 保存原始参数用于重置
+            const originalCelestialBodies = [
+                { name: "太阳", radius: 30, color: "#ff7d00", orbitRadius: 0, orbitSpeed: 0, angle: 0, tilt: 0 },
+                { name: "水星", radius: 4, color: "#a8a8a8", orbitRadius: 70, orbitSpeed: 0.04, angle: 0, tilt: 0 },
+                { name: "金星", radius: 7, color: "#e39e58", orbitRadius: 100, orbitSpeed: 0.015, angle: 0, tilt: 0 },
+                { name: "地球", radius: 7.5, color: "#2e86c1", orbitRadius: 140, orbitSpeed: 0.01, angle: 0, tilt: 23.5 },
+                { name: "月球", radius: 2, color: "#d0d0d0", orbitRadius: 20, orbitSpeed: 0.05, angle: 0, tilt: 0, parent: 3 },
+                { name: "火星", radius: 5, color: "#e74c3c", orbitRadius: 180, orbitSpeed: 0.008, angle: 0, tilt: 25 },
+                { name: "木星", radius: 20, color: "#f39c12", orbitRadius: 230, orbitSpeed: 0.002, angle: 0, tilt: 3 },
+                { name: "土星", radius: 16, color: "#f1c40f", orbitRadius: 300, orbitSpeed: 0.0009, angle: 0, tilt: 26.7, ring: { innerRadius: 20, outerRadius: 30, color: "#d4ac0d" } },
+                { name: "天王星", radius: 12, color: "#3498db", orbitRadius: 350, orbitSpeed: 0.0004, angle: 0, tilt: 97.8 },
+                { name: "海王星", radius: 11, color: "#2980b9", orbitRadius: 400, orbitSpeed: 0.0001, angle: 0, tilt: 28.3 }
             ];
             
-            // 获取键盘和音符显示元素
-            const keyboard = document.getElementById('keyboard');
-            const noteDisplay = document.getElementById('note-display');
-            const noteName = document.getElementById('note-name');
+            // 克隆原始数据作为当前数据
+            let celestialBodies = JSON.parse(JSON.stringify(originalCelestialBodies));
             
-            // 创建琴键
-            notes.forEach((note, index) => {
-                const key = document.createElement('div');
-                key.className = 'white-key flex-1 relative bg-white border-r border-gray-300 cursor-pointer transition-all duration-150 key-shadow flex flex-col items-center justify-end pb-4';
-                key.dataset.note = note.name;
-                key.dataset.frequency = note.frequency;
-                key.innerHTML = `
-                    <span class="text-lg font-semibold text-gray-800">${note.name}</span>
-                    <span class="text-xs text-gray-500 mt-1">${note.frequency.toFixed(2)}Hz</span>
-                `;
+            // 动画控制变量
+            let isPaused = false;
+            let animationSpeed = 1;
+            let zoomLevel = 1;
+            let showLabels = true;
+            
+            // 初始化参数面板
+            function initParamsPanel() {
+                const bodySelector = document.getElementById('bodySelector');
                 
-                // 为琴键添加事件监听
-                key.addEventListener('mousedown', () => playNote(key));
-                key.addEventListener('mouseup', () => releaseNote(key));
-                key.addEventListener('mouseleave', () => releaseNote(key));
+                // 填充天体选择下拉框
+                celestialBodies.forEach((body, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = body.name;
+                    bodySelector.appendChild(option);
+                });
                 
-                keyboard.appendChild(key);
-            });
-            
-            // 音频上下文
-            let audioContext;
-            
-            // 播放音符
-            function playNote(key) {
-                // 初始化音频上下文
-                if (!audioContext) {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                // 显示选中天体的参数
+                function displayBodyParams(index) {
+                    const body = celestialBodies[index];
+                    document.getElementById('radiusInput').value = body.radius;
+                    document.getElementById('orbitRadiusInput').value = body.orbitRadius;
+                    document.getElementById('speedInput').value = body.orbitSpeed;
+                    document.getElementById('tiltInput').value = body.tilt;
+                    document.getElementById('colorInput').value = body.color;
                 }
                 
-                // 获取音符信息
-                const note = key.dataset.note;
-                const frequency = parseFloat(key.dataset.frequency);
+                // 初始显示第一个天体的参数
+                displayBodyParams(0);
                 
-                // 显示当前音符
-                noteName.textContent = note;
-                noteDisplay.style.opacity = '1';
-                noteDisplay.style.transform = 'translate(-50%, -10px)';
+                // 当选择不同天体时更新参数显示
+                bodySelector.addEventListener('change', function() {
+                    displayBodyParams(this.value);
+                });
                 
-                // 改变琴键样式
-                key.classList.remove('key-shadow');
-                key.classList.add('key-shadow-active', 'bg-gray-100');
+                // 应用参数更改
+                document.getElementById('applyParamsBtn').addEventListener('click', function() {
+                    const index = parseInt(bodySelector.value);
+                    const body = celestialBodies[index];
+                    
+                    body.radius = parseFloat(document.getElementById('radiusInput').value);
+                    body.orbitRadius = parseFloat(document.getElementById('orbitRadiusInput').value);
+                    body.orbitSpeed = parseFloat(document.getElementById('speedInput').value);
+                    body.tilt = parseFloat(document.getElementById('tiltInput').value);
+                    body.color = document.getElementById('colorInput').value;
+                    
+                    // 显示成功提示
+                    showNotification(`${body.name}的参数已更新`);
+                });
                 
-                // 创建振荡器播放音符
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
+                // 重置参数为原始值
+                document.getElementById('resetParamsBtn').addEventListener('click', function() {
+                    const index = parseInt(bodySelector.value);
+                    const originalBody = originalCelestialBodies[index];
+                    
+                    // 恢复原始参数
+                    celestialBodies[index] = JSON.parse(JSON.stringify(originalBody));
+                    celestialBodies[index].angle = 0; // 重置角度
+                    
+                    // 更新表单显示
+                    displayBodyParams(index);
+                    
+                    // 显示提示
+                    showNotification(`${celestialBodies[index].name}的参数已重置`);
+                });
                 
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-                
-                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-                gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.05);
-                gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.5);
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                oscillator.start();
-                oscillator.stop(audioContext.currentTime + 0.5);
-                
-                // 存储当前的音频节点，以便后续可以停止它们
-                key.currentOscillator = oscillator;
-                key.currentGainNode = gainNode;
+                // 参数面板切换
+                document.getElementById('paramsBtn').addEventListener('click', function() {
+                    const panel = document.getElementById('paramsPanel');
+                    panel.classList.toggle('hidden');
+                });
             }
             
-            // 释放音符
-            function releaseNote(key) {
-                // 恢复琴键样式
-                key.classList.remove('key-shadow-active', 'bg-gray-100');
-                key.classList.add('key-shadow');
+            // 显示通知提示
+            function showNotification(message) {
+                // 检查是否已有通知
+                let notification = document.getElementById('notification');
+                if (notification) {
+                    notification.remove();
+                }
                 
-                // 隐藏音符显示（延迟一点时间）
+                // 创建新通知
+                notification = document.createElement('div');
+                notification.id = 'notification';
+                notification.className = 'fixed top-4 right-4 bg-primary text-white px-4 py-2 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-y-0 opacity-100';
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                // 3秒后隐藏通知
                 setTimeout(() => {
-                    noteDisplay.style.opacity = '0';
-                    noteDisplay.style.transform = 'translate(-50%, 0)';
-                }, 300);
+                    notification.classList.add('opacity-0', 'translate-y-[-20px]');
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
             }
+            
+            // 计算中心坐标
+            function getCenter() {
+                return {
+                    x: canvas.width / 2,
+                    y: canvas.height / 2
+                };
+            }
+            
+            // 绘制天体轨道
+            function drawOrbit(orbitRadius, center) {
+                ctx.beginPath();
+                ctx.arc(center.x, center.y, orbitRadius, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+            
+            // 绘制天体
+            function drawCelestialBody(body, center) {
+                // 计算天体位置
+                let x, y;
+                if (body.orbitRadius === 0) {
+                    // 太阳位于中心
+                    x = center.x;
+                    y = center.y;
+                } else {
+                    const parent = body.parent !== undefined ? celestialBodies[body.parent] : null;
+                    const parentX = parent ? parent.x : center.x;
+                    const parentY = parent ? parent.y : center.y;
+                    
+                    x = parentX + Math.cos(body.angle) * body.orbitRadius * zoomLevel;
+                    y = parentY + Math.sin(body.angle) * body.orbitRadius * zoomLevel;
+                    
+                    // 存储位置用于卫星
+                    body.x = x;
+                    body.y = y;
+                }
+                
+                // 绘制轨道
+                if (body.orbitRadius > 0) {
+                    const orbitCenter = body.parent !== undefined 
+                        ? { x: celestialBodies[body.parent].x, y: celestialBodies[body.parent].y } 
+                        : center;
+                    drawOrbit(body.orbitRadius * zoomLevel, orbitCenter);
+                }
+                
+                // 绘制行星环
+                if (body.ring) {
+                    ctx.beginPath();
+                    ctx.ellipse(x, y, body.ring.outerRadius * zoomLevel, body.ring.innerRadius * zoomLevel, 
+                        body.tilt * Math.PI / 180, 0, Math.PI * 2);
+                    ctx.strokeStyle = body.ring.color;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+                
+                // 绘制天体
+                ctx.beginPath();
+                ctx.arc(x, y, body.radius * zoomLevel, 0, Math.PI * 2);
+                
+                // 创建径向渐变
+                const gradient = ctx.createRadialGradient(
+                    x - body.radius * zoomLevel * 0.3, y - body.radius * zoomLevel * 0.3, 0,
+                    x, y, body.radius * zoomLevel
+                );
+                
+                if (body.name === "太阳") {
+                    gradient.addColorStop(0, "#fffacd");
+                    gradient.addColorStop(0.5, body.color);
+                    gradient.addColorStop(1, "#ff4500");
+                } else {
+                    gradient.addColorStop(0, body.color);
+                    gradient.addColorStop(1, darkenColor(body.color, 0.7));
+                }
+                
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // 添加发光效果（仅太阳）
+                if (body.name === "太阳") {
+                    ctx.shadowColor = body.color;
+                    ctx.shadowBlur = 20 * zoomLevel;
+                    ctx.beginPath();
+                    ctx.arc(x, y, body.radius * zoomLevel, 0, Math.PI * 2);
+                    ctx.fillStyle = body.color + "40"; // 添加透明度
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+                
+                // 绘制标签
+                if (showLabels) {
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold ' + Math.max(8, 12 * zoomLevel) + 'px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(body.name, x, y - body.radius * zoomLevel - 5);
+                }
+            }
+            
+            // 辅助函数：使颜色变暗
+            function darkenColor(color, amount) {
+                // 处理十六进制颜色
+                if (color.startsWith('#')) {
+                    let r = parseInt(color.substr(1, 2), 16);
+                    let g = parseInt(color.substr(3, 2), 16);
+                    let b = parseInt(color.substr(5, 2), 16);
+                    
+                    r = Math.max(0, Math.floor(r * amount));
+                    g = Math.max(0, Math.floor(g * amount));
+                    b = Math.max(0, Math.floor(b * amount));
+                    
+                    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+                }
+                return color;
+            }
+            
+            // 动画循环
+            function animate() {
+                if (!isPaused) {
+                    // 更新天体角度
+                    celestialBodies.forEach(body => {
+                        body.angle += body.orbitSpeed * animationSpeed;
+                    });
+                }
+                
+                // 清空画布
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // 绘制星空背景
+                drawStars();
+                
+                // 获取中心坐标
+                const center = getCenter();
+                
+                // 绘制所有天体
+                celestialBodies.forEach(body => {
+                    drawCelestialBody(body, center);
+                });
+                
+                requestAnimationFrame(animate);
+            }
+            
+            // 绘制星空背景
+            function drawStars() {
+                ctx.fillStyle = '#000a1f';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // 随机绘制星星
+                ctx.fillStyle = 'white';
+                for (let i = 0; i < 200; i++) {
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height;
+                    const size = Math.random() * 1.5;
+                    
+                    // 闪烁效果
+                    const alpha = 0.5 + Math.sin(Date.now() * 0.001 + i) * 0.5;
+                    ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                    
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            
+            // 初始化参数面板
+            initParamsPanel();
+            
+            // 初始化动画
+            animate();
+            
+            // 事件监听器
+            document.getElementById('pauseBtn').addEventListener('click', function() {
+                isPaused = !isPaused;
+                this.innerHTML = isPaused ? '<i class="fa fa-play mr-2"></i>继续' : '<i class="fa fa-pause mr-2"></i>暂停';
+            });
+            
+            document.getElementById('resetBtn').addEventListener('click', function() {
+                celestialBodies.forEach(body => {
+                    body.angle = 0;
+                });
+                showNotification('所有天体已重置位置');
+            });
+            
+            const speedRange = document.getElementById('speedRange');
+            const speedValue = document.getElementById('speedValue');
+            speedRange.addEventListener('input', function() {
+                animationSpeed = parseFloat(this.value);
+                speedValue.textContent = animationSpeed.toFixed(1) + 'x';
+            });
+            
+            const zoomRange = document.getElementById('zoomRange');
+            const zoomValue = document.getElementById('zoomValue');
+            zoomRange.addEventListener('input', function() {
+                zoomLevel = parseFloat(this.value);
+                zoomValue.textContent = zoomLevel.toFixed(1) + 'x';
+            });
+            
+            document.getElementById('labelsToggle').addEventListener('change', function() {
+                showLabels = this.checked;
+            });
+            
+            document.getElementById('fullscreenBtn').addEventListener('click', function() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        alert(`全屏请求出错: ${err.message}`);
+                    });
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    }
+                }
+            });
+            
+            // 信息面板切换
+            const infoBtn = document.getElementById('infoBtn');
+            const planetInfo = document.getElementById('planetInfo');
+            let infoVisible = true;
+            
+            infoBtn.addEventListener('click', function() {
+                infoVisible = !infoVisible;
+                planetInfo.style.display = infoVisible ? 'grid' : 'none';
+                showNotification(infoVisible ? '显示天体信息' : '隐藏天体信息');
+            });
+            
+            // 添加拖动画布功能
+            let isDragging = false;
+            let dragStartX, dragStartY;
+            let offsetX = 0, offsetY = 0;
+            
+            canvas.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                dragStartX = e.clientX - offsetX;
+                dragStartY = e.clientY - offsetY;
+            });
+            
+            canvas.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                offsetX = e.clientX - dragStartX;
+                offsetY = e.clientY - dragStartY;
+            });
+            
+            canvas.addEventListener('mouseup', function() {
+                isDragging = false;
+            });
+            
+            canvas.addEventListener('mouseleave', function() {
+                isDragging = false;
+            });
+            
+            // 缩放动画效果
+            zoomRange.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                zoomValue.textContent = value.toFixed(1) + 'x';
+                
+                // 添加平滑过渡效果
+                const targetZoom = value;
+                const startZoom = zoomLevel;
+                const duration = 300; // 过渡时间（毫秒）
+                const startTime = performance.now();
+                
+                function animateZoom(currentTime) {
+                    const elapsedTime = currentTime - startTime;
+                    if (elapsedTime < duration) {
+                        const progress = elapsedTime / duration;
+                        zoomLevel = startZoom + (targetZoom - startZoom) * progress;
+                        requestAnimationFrame(animateZoom);
+                    } else {
+                        zoomLevel = targetZoom;
+                    }
+                }
+                
+                requestAnimationFrame(animateZoom);
+            });
         });
     </script>
 </body>
